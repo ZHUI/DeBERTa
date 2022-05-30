@@ -5,7 +5,8 @@ import argparse
 from tqdm import tqdm
 
 def tokenize_data(input, output=None, max_seq_length=512):
-  p,t=deberta.load_vocab(vocab_path=None, vocab_type='spm', pretrained_id='deberta-v3-base')
+  p,t=deberta.load_vocab(vocab_path=None, vocab_type='spm', pretrained_id='xlarge-v2')
+  print(p, t)
   tokenizer=deberta.tokenizers[t](p)
   if output is None:
     output=input + '.spm'

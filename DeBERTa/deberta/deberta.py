@@ -40,6 +40,7 @@ class DeBERTa(torch.nn.Module):
     state = None
     if pre_trained is not None:
       state, model_config = load_model_state(pre_trained)
+      print(state.keys())
       if config is not None and model_config is not None:
         for k in config.__dict__:
           if k not in ['hidden_size',
@@ -112,6 +113,8 @@ class DeBERTa(torch.nn.Module):
 
     ebd_output = self.embeddings(input_ids.to(torch.long), token_type_ids.to(torch.long), position_ids, attention_mask)
     embedding_output = ebd_output['embeddings']
+    print("embedding_output", embedding_output.shape, embedding_output.sum().item(), embedding_output.mean().item())
+
     encoder_output = self.encoder(embedding_output,
                    attention_mask,
                    output_all_encoded_layers=output_all_encoded_layers, return_att = return_att)

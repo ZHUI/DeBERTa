@@ -177,7 +177,8 @@ class DistributedTrainer:
     self.trainer_state.best_metric, self.trainer_state.best_steps =  _metric, _steps
 
   def _train_step(self, data, bs_scale):
-    self.model.train()
+    # self.model.train()
+    self.model.eval()
     go_next=False
 
     def split(batch, parts):
@@ -202,11 +203,19 @@ class DistributedTrainer:
       self.optimizer.zero_grad()
       forward_outputs = []
       for i, sub in enumerate(data_chunks):
+        store = {}
+        for k,v in sub.items():
+          store[k] = v.cpu().detach().numpy()
+        np.savez("/nfs/zhonghui03/Workspace/DeBERTa/data_one_batch.npz",  **store)
+        
         output = self.loss_fn(self, self.model, sub)
         if isinstance(output, dict):
           loss, sub_size = output['loss'], output['batch_size']
         else:
           loss, sub_size = output
+          
+        print(loss, sub_size)
+        
         forward_outputs.append(output)
         loss = loss/len(data_chunks)
         if i == 0:
@@ -229,8 +238,9 @@ class DistributedTrainer:
     if self.post_loss_fn is not None:
       self.post_loss_fn(forward_outputs)
 
-    if self.trainer_state.steps%100 == 0:
+    if self.trainer_state.steps%1 == 0:
       self.trainer_state.report_state()
+      exit()
     if self.trainer_state.steps%self.dump_interval == 0:
       self._eval_model()
 

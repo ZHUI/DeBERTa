@@ -3,7 +3,7 @@ SCRIPT=$(readlink -f "$0")
 SCRIPT_DIR=$(dirname "$SCRIPT")
 cd $SCRIPT_DIR
 
-cache_dir=/tmp/DeBERTa/MLM/
+cache_dir=./tmp/DeBERTa/MLM/
 
 max_seq_length=512
 data_dir=$cache_dir/wiki103/spm_$max_seq_length
@@ -12,16 +12,17 @@ function setup_wiki_data(){
 	task=$1
 	mkdir -p $cache_dir
 	if [[ ! -e  $cache_dir/spm.model ]]; then
-		wget -q https://huggingface.co/microsoft/deberta-v3-base/resolve/main/spm.model -O $cache_dir/spm.model
+		# wget -q https://huggingface.co/microsoft/deberta-v3-base/resolve/main/spm.model -O $cache_dir/spm.model
+		wget -q https://huggingface.co/microsoft/deberta-v2-xlarge/resolve/main/spm.model  -O $cache_dir/spm.model
 	fi
 
 	if [[ ! -e  $data_dir/test.txt ]]; then
-		wget -q https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-103-v1.zip -O $cache_dir/wiki103.zip
+        # wget -q https://s3.amazonaws.com/research.metamind.io/wikitext/wikitext-103-v1.zip -O $cache_dir/wiki103.zip
 		unzip -j $cache_dir/wiki103.zip -d $cache_dir/wiki103
 		mkdir -p $data_dir
-		python ./prepare_data.py -i $cache_dir/wiki103/wiki.train.tokens -o $data_dir/train.txt --max_seq_length $max_seq_length
-		python ./prepare_data.py -i $cache_dir/wiki103/wiki.valid.tokens -o $data_dir/valid.txt --max_seq_length $max_seq_length
-		python ./prepare_data.py -i $cache_dir/wiki103/wiki.test.tokens -o $data_dir/test.txt --max_seq_length $max_seq_length
+		PYTHONPATH=../../ python ./prepare_data.py -i $cache_dir/wiki103/wiki.train.tokens -o $data_dir/train.txt --max_seq_length $max_seq_length
+		PYTHONPATH=../../ python ./prepare_data.py -i $cache_dir/wiki103/wiki.valid.tokens -o $data_dir/valid.txt --max_seq_length $max_seq_length
+		PYTHONPATH=../../ python ./prepare_data.py -i $cache_dir/wiki103/wiki.test.tokens -o $data_dir/test.txt --max_seq_length $max_seq_length
 	fi
 }
 
@@ -55,9 +56,9 @@ case ${init,,} in
 	--model_config deberta_xlarge.json \
 	--warmup 1000 \
 	--learning_rate 1e-4 \
-	--train_batch_size 32 \
+	--train_batch_size 4 \
 	--max_ngram 3 \
-	--fp16 True "
+	--fp16 False "
 		;;
 	xxlarge-v2)
 	parameters=" --num_train_epochs 1 \
@@ -79,8 +80,9 @@ case ${init,,} in
 		;;
 esac
 
-python -m DeBERTa.apps.run --model_config config.json  \
+PYTHONPATH=../../ python -m DeBERTa.apps.run --model_config config.json  \
 	--tag $tag \
+    --init_model $init \
 	--do_train \
 	--num_training_steps 1000000 \
 	--max_seq_len $max_seq_length \
@@ -89,4 +91,4 @@ python -m DeBERTa.apps.run --model_config config.json  \
 	--data_dir $data_dir \
 	--vocab_path $cache_dir/spm.model \
 	--vocab_type spm \
-	--output_dir /tmp/ttonly/$tag/$task  $parameters
+	--output_dir ./tmp/ttonly/$tag/$task  $parameters

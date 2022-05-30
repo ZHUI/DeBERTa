@@ -40,9 +40,11 @@ def create_model(args, num_labels, model_class_fn):
   # Prepare model
   rank = getattr(args, 'rank', 0)
   init_model = args.init_model if rank<1 else None
+  print(args.pre_trained)
   model = model_class_fn(init_model, args.model_config, num_labels=num_labels, \
       drop_out=args.cls_drop_out, \
       pre_trained = args.pre_trained)
+  print(model.lm_predictions.lm_head.bias)
   if args.fp16:
     model = model.half()
 
@@ -66,6 +68,7 @@ def train_model(args, model, device, train_data, eval_data, run_eval_fn, train_f
   def _loss_fn(trainer, model, data):
     output = model(**data)
     loss = output['loss']
+    print(loss)
     return loss.mean(), data['input_ids'].size(0)
 
   def get_adv_loss_fn():

@@ -81,6 +81,8 @@ def download_asset(url, name, tag=None, no_cache=False, cache_dir=None):
 
 def load_model_state(path_or_pretrained_id, tag=None, no_cache=False, cache_dir=None):
   model_path = path_or_pretrained_id
+  print(model_path)
+  print(pretrained_models)
   if model_path and (not os.path.exists(model_path)) and (path_or_pretrained_id.lower() in pretrained_models):
     _tag = tag
     pretrained = pretrained_models[path_or_pretrained_id.lower()]
@@ -89,6 +91,7 @@ def load_model_state(path_or_pretrained_id, tag=None, no_cache=False, cache_dir=
     if not cache_dir:
       cache_dir = os.path.join(pathlib.Path.home(), f'.~DeBERTa/assets/{_tag}/{pretrained.name}')
     os.makedirs(cache_dir, exist_ok=True)
+    print(cache_dir)
     model_path = os.path.join(cache_dir, 'pytorch_model.bin')
     if (not os.path.exists(model_path)) or no_cache:
       asset = download_asset(pretrained.model_url, 'pytorch_model.bin', tag=tag, no_cache=no_cache, cache_dir=cache_dir)

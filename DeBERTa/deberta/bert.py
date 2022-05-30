@@ -261,6 +261,9 @@ class BertEmbeddings(nn.Module):
 
     if self.embedding_size != self.config.hidden_size:
       embeddings = self.embed_proj(embeddings)
+    
+    print("embedding berfore LN", embeddings.shape, embeddings.sum().item(), embeddings.mean().item())
+
     embeddings = MaskedLayerNorm(self.LayerNorm, embeddings, mask)
     embeddings = self.dropout(embeddings)
     return {
